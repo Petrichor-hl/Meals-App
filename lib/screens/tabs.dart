@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:meals_app/data/dummy_data.dart';
 import 'package:meals_app/models/meal.dart';
 import 'package:meals_app/screens/categories.dart';
+import 'package:meals_app/screens/filters.dart';
 import 'package:meals_app/screens/meals.dart';
+import 'package:meals_app/widgets/app_drawer.dart';
 
 class TabsScreen extends StatefulWidget {
   const TabsScreen({super.key});
@@ -13,76 +16,93 @@ class TabsScreen extends StatefulWidget {
 class _TabsScreenState extends State<TabsScreen> {
   int _selectedPageIndex = 0;
 
+  final List<Meal> _favoriteMeals = [dummyMeals[3], dummyMeals[4]];
+
+  Map<String, bool> _selectedFilters = {
+    'glutenFree': false,
+    'lactoseFree': false,
+    'vegetarian': false,
+    'vegan': false,
+  };
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 2),
+        content: Text(message),
+      ),
+    );
+  }
+
+  void _toggleMealFavoriteStatus(Meal meal) {
+    final isExisting = _favoriteMeals.contains(meal);
+
+    if (isExisting) {
+      setState(() {
+        _favoriteMeals.remove(meal);
+        _showMessage('Meal is no longer a favorite.');
+      });
+    } else {
+      setState(() {
+        _favoriteMeals.add(meal);
+        _showMessage('Marked as a favorite!');
+      });
+    }
+  }
+
+  void _setScreen(String identifier) async {
+    Navigator.pop(context);
+
+    if (identifier == 'filters') {
+      final result = await Navigator.of(context).push<Map<String, bool>>(
+        MaterialPageRoute(
+          builder: (ctx) => FiltersScreen(
+            currentFilters: _selectedFilters,
+          ),
+        ),
+      );
+      setState(() {
+        _selectedFilters = result!;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredMeals = dummyMeals.where((meal) {
+      if (_selectedFilters['glutenFree']! && !meal.isGlutenFree) {
+        return false;
+      }
+
+      if (_selectedFilters['lactoseFree']! && !meal.isLactoseFree) {
+        return false;
+      }
+      if (_selectedFilters['vegetarian']! && !meal.isVegetarian) {
+        return false;
+      }
+      if (_selectedFilters['vegan']! && !meal.isVegan) {
+        return false;
+      }
+      return true;
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_selectedPageIndex == 0 ? 'Categories' : 'Farvorites'),
       ),
+      drawer: AppDrawer(
+        onSelectScreen: _setScreen,
+      ),
       body: _selectedPageIndex == 0
-          ? const CategoriesScreen()
-          : const MealsScreen(meals: [
-              Meal(
-                id: 'm2',
-                categories: [
-                  'c2',
-                ],
-                title: 'Toast Hawaii',
-                affordability: Affordability.affordable,
-                complexity: Complexity.simple,
-                imageUrl:
-                    'https://cdn.pixabay.com/photo/2018/07/11/21/51/toast-3532016_1280.jpg',
-                duration: 10,
-                ingredients: [
-                  '1 Slice White Bread',
-                  '1 Slice Ham',
-                  '1 Slice Pineapple',
-                  '1-2 Slices of Cheese',
-                  'Butter'
-                ],
-                steps: [
-                  'Butter one side of the white bread',
-                  'Layer ham, the pineapple and cheese on the white bread',
-                  'Bake the toast for round about 10 minutes in the oven at 200°C'
-                ],
-                isGlutenFree: false,
-                isVegan: false,
-                isVegetarian: false,
-                isLactoseFree: false,
-              ),
-              Meal(
-                id: 'm3',
-                categories: [
-                  'c2',
-                  'c3',
-                ],
-                title: 'Classic Hamburger',
-                affordability: Affordability.pricey,
-                complexity: Complexity.simple,
-                imageUrl:
-                    'https://cdn.pixabay.com/photo/2014/10/23/18/05/burger-500054_1280.jpg',
-                duration: 45,
-                ingredients: [
-                  '300g Cattle Hack',
-                  '1 Tomato',
-                  '1 Cucumber',
-                  '1 Onion',
-                  'Ketchup',
-                  '2 Burger Buns'
-                ],
-                steps: [
-                  'Form 2 patties',
-                  'Fry the patties for c. 4 minutes on each side',
-                  'Quickly fry the buns for c. 1 minute on each side',
-                  'Bruch buns with ketchup',
-                  'Serve burger with tomato, cucumber and onion'
-                ],
-                isGlutenFree: false,
-                isVegan: false,
-                isVegetarian: false,
-                isLactoseFree: true,
-              ),
-            ]),
+          ? CategoriesScreen(
+              onToggleFavorite: _toggleMealFavoriteStatus,
+              availablesMeals: filteredMeals,
+            )
+          : MealsScreen(
+              meals: _favoriteMeals,
+              onToggleFavorite: _toggleMealFavoriteStatus,
+            ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
