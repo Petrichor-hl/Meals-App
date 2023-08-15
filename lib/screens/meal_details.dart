@@ -14,7 +14,9 @@ class MealDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(meal.title),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.star))],
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.star)),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
