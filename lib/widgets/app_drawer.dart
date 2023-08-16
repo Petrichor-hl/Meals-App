@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:meals_app/screens/filters.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key, required this.onSelectScreen});
-
-  final void Function(String identifier) onSelectScreen;
+  const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +57,7 @@ class AppDrawer extends StatelessWidget {
                   .copyWith(color: Theme.of(context).colorScheme.primary),
             ),
             onTap: () {
-              onSelectScreen('meals');
+              Navigator.of(context).pop();
             },
           ),
           ListTile(
@@ -75,7 +74,10 @@ class AppDrawer extends StatelessWidget {
                   .copyWith(color: Theme.of(context).colorScheme.primary),
             ),
             onTap: () {
-              onSelectScreen('filters');
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (ctx) => const FiltersScreen()),
+              );
             },
           )
         ],
