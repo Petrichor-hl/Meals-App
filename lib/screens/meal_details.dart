@@ -35,9 +35,18 @@ class MealDetailsScreen extends ConsumerWidget {
             icon: Consumer(
               builder: (ctx, ref, child) {
                 final favoritesList = ref.watch(favoriteMealsProvider);
-                return Icon(favoritesList.contains(meal)
-                    ? Icons.star
-                    : Icons.star_outline);
+                final isFavorite = favoritesList.contains(meal);
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => RotationTransition(
+                    turns: Tween<double>(begin: 0.5, end: 1).animate(animation),
+                    child: child,
+                  ),
+                  child: Icon(
+                    isFavorite ? Icons.star : Icons.star_outline,
+                    key: ValueKey(isFavorite),
+                  ),
+                );
               },
             ),
           ),
@@ -47,11 +56,14 @@ class MealDetailsScreen extends ConsumerWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Image.network(
-                meal.imageUrl,
-                height: 280,
-                width: double.infinity,
-                fit: BoxFit.fill,
+              Hero(
+                tag: meal.id,
+                child: Image.network(
+                  meal.imageUrl,
+                  height: 280,
+                  width: double.infinity,
+                  fit: BoxFit.fill,
+                ),
               ),
               const SizedBox(
                 height: 24,
